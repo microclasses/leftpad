@@ -1,0 +1,53 @@
+buildscript {
+  repositories { jcenter() }
+  dependencies {
+    classpath 'info.solidsoft.gradle.pitest:gradle-pitest-plugin:1.1.9'
+  }
+}
+repositories { jcenter() }
+
+apply plugin: 'java'
+apply plugin: "jacoco"
+apply plugin: 'info.solidsoft.pitest'
+
+
+dependencies {
+  testCompile 'junit:junit:4.12'
+}
+
+defaultTasks 'clean', 'test', 'pitest'
+
+task libs(type: Sync) {
+  from configurations.testCompile
+  into "$buildDir/lib"
+}
+
+compileJava.dependsOn libs
+
+jacoco {
+  toolVersion = "0.7.6.201602180812"
+}
+
+jacocoTestReport {
+  reports {
+    xml.enabled false
+    csv.enabled false
+    html.destination "${buildDir}/reports/jacocoHtml"
+  }
+}
+
+test {
+  jacoco {
+    enabled = true
+    includes = ['org/microclasses/**/*']
+  }
+}
+
+pitest {
+  targetClasses = ["org.microclasses*"]
+  timestampedReports = false
+  threads = 4
+  outputFormats = ['XML', 'HTML']
+  enableDefaultIncrementalAnalysis = true
+}
+
